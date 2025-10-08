@@ -24,7 +24,7 @@ python -m examples.encode_reference \
 
 ### Minimal Latency Example
 
-To take advantage of encoding references ahead of time, we have a compiled the codec decoder into an [onnx graph](https://huggingface.co/neuphonic/neucodec-onnx-decoder) that enables inferencing NeuTTS-Air without loading the encoder. 
+To take advantage of encoding references ahead of time, we have a compiled the codec decoder into an [onnx graph](https://huggingface.co/neuphonic/neucodec-onnx-decoder) that enables inferencing NeuTTS-Air without loading the encoder.
 This can be useful for running the model in resource-constrained environments where the encoder may add a large amount of extra latency/memory usage.
 
 To test the decoder, make sure you have installed ```onnxruntime``` and run the following:
@@ -36,3 +36,15 @@ python -m examples.onnx_example \
   --ref_text samples/dave.txt \
   --backbone neuphonic/neutts-air-q4-gguf
 ```
+
+### Wyoming Protocol Server
+
+Expose NeuTTSAir as a Wyoming TTS service for Home Assistant, Rhasspy, or OVOS:
+
+```bash
+python -m examples.wyoming_server \
+  --uri tcp://0.0.0.0:10200 \
+  --voice name=dave,ref_audio=samples/dave.wav,ref_text=samples/dave.txt
+```
+
+Repeat `--voice` to register multiple cloned voices. Use `ref_codes=./path/to/dave.pt` if you have pre-encoded references.
