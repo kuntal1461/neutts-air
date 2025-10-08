@@ -212,13 +212,23 @@ def _flatten_codes(
 def _load_ref_codes(path: Path) -> List[int]:
     suffix = path.suffix.lower()
     if suffix in {".pt", ".pth"}:
-        data = torch.load(path, map_location="cpu")
+        try:
+            data = torch.load(path, map_location="cpu", weights_only=True)
+        except TypeError:  # Fallback for older torch without weights_only
+            raise RuntimeError(
+                "Loading '.pt' reference codes requires torch >= 2.0 with weights_only support "
+                "to avoid executing arbitrary pickle payloads."
+            ) from None
     elif suffix == ".npy":
-        data = np.load(path)
+        data = np.load(path, allow_pickle=False)
     else:
         message = (
             "Unsupported reference code format '{suffix}'. Expected " ".pt, .pth, or .npy"
         ).format(suffix=path.suffix)
+        raise ValueError(message)
+
+    if not isinstance(data, (torch.Tensor, np.ndarray, list, tuple)):
+        message = "Reference code file must contain tensor-like data."
         raise ValueError(message)
 
     return _flatten_codes(data)
